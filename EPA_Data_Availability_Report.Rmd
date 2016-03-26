@@ -1,0 +1,85 @@
+---
+title: "Air Pollution Data Availability"
+author: "Eric Bailey"
+date: "March 25, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(reshape2)
+library(ggplot2)
+last_data_pull <- "March 24, 2016"
+load("data/full.data.rda")
+source("scripts/coveragePlot.R")
+
+## Basic Data Filtering to get valid Indiana data
+in.data <- full.data %>%
+  mutate(Last.Sample.Date = as.Date(Last.Sample.Date, "%Y-%m-%d")) %>%
+  mutate(Last.Year.of.Data = as.numeric(format(Last.Sample.Date, "%Y"))) %>%
+  mutate(First.Year.of.Data = as.numeric(First.Year.of.Data)) %>%
+  mutate(Site.Code = sprintf("%02s-%03i-%04i-%i", State.Code, County.Code,
+                             Site.Number, POC)) %>%
+  filter(!is.na(Last.Sample.Date)) %>%
+  filter(Last.Sample.Date > as.Date("1999-01-01")) %>%
+  filter(State.Code == 18)
+    
+## Ozone Data
+ozone <- in.data %>%
+  filter(Parameter.Name == "Ozone")
+
+## SO2 Data
+so2 <- in.data %>%
+  filter(Parameter.Name == "Sulfur dioxide")
+
+so2_purpose <- so2 %>%
+  group_by(Monitoring.Objective) %>%
+  summarize(Count = n())
+colnames(so2_purpose) <- c('Monitoring Objective', 'Count')
+
+```
+
+## Data Requirements
+
+FluentData LLC has been contracted to compile all data ... (fill this in)
+
+## Data Source
+
+U.S. EPA's Air Quality System website was used to obtain a list of all air quality monitors in the country. This file was obtained from the following location:
+http://aqsdr1.epa.gov/aqsweb/aqstmp/airdata/aqs_monitors.zip most recently on `r last_data_pull`. The data was then processed using the `R` programming language 
+to subset and visualize the parameters of interest for the State of Indiana. The remainder of this document will outline the available data.
+
+## Data Cleaning and Filtering
+
+The raw dataset downloaded from U.S. EPA contained `r nrow(full.data)` records. Each record represents a monitor with data in AQS. Basic cleanup of this data was done, including ensuring that date columns were formatted as dates and an index column was created by concatenating the `State.Code`, `County.Code`, `Site.Number`, and `POC` columns.
+
+Next, any rows with missing date ranges were removed, as well as any rows where the `Last.Sample.Date` was before January 1, 1999. Lastly, the dataset was reduced to only records from Indiana (`State.Code == 18`). This filtering left `r nrow(in.data) ` rows of data.
+
+### Ozone
+
+There are `r nrow(ozone) ` ozone monitors in Indiana that have been active at some point between 1999 and 2015. Of these, `r nrow(ozone[ozone$Last.Year.of.Data == 2015,]) ` were active as of the end of 2015 and `r nrow(ozone[ozone$Last.Year.of.Data == 2015 & ozone$First.Year.of.Data <= 1999, ]) ` have been active during the entire period covered by this project (1999-2015).
+
+Below is a plot illustrating ozone data coverage, by monitor, for all monitors that collected ozone data during the period of interest.
+
+```{r ozone_coverage, fig.width=9, fig.height=6, echo=FALSE}
+coveragePlot(ozone, "Ozone Monitoring Coverage by Monitoring Location")
+```
+
+### Sulfur Dioxide
+
+There are `r nrow(so2) ` ozone monitors in Indiana that have been active at some point between 1999 and 2015. Of these, `r nrow(so2[so2$Last.Year.of.Data == 2015,]) ` were active as of the end of 2015 and `r nrow(so2[so2$Last.Year.of.Data == 2015 & so2$First.Year.of.Data <= 1999, ]) ` have been active during the entire period covered by this project (1999-2015).
+
+Below is a plot illustrating ozone data coverage, by monitor, for all monitors that collected ozone data during the period of interest.
+
+```{r so2_coverage, fig.width=9, fig.height=6, echo=FALSE}
+coveragePlot(so2, "Sulfur Dioxide Monitoring Coverage by Monitoring Location")
+```
+
+Sulfur Dioxide monitors are usually oriented related to specific sources and so are not representative of general concentrations or population exposures. Below is a table showing the reported purpose of Sulfur Dioxide monitors in Indiana.
+
+```{r kable, echo=FALSE}
+
+library(knitr)
+kable(so2_purpose)
+```
