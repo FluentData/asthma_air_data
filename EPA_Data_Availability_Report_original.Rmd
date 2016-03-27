@@ -10,18 +10,9 @@ knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
 library(reshape2)
 library(ggplot2)
-library(knitr)
 last_data_pull <- "March 24, 2016"
 load("data/full.data.rda")
 source("scripts/coveragePlot.R")
-
-simpleCap <- function(x) {
-  s <- strsplit(x, " ")[[1]]
-  paste(toupper(substring(s, 1,1)), substring(s, 2),
-      sep="", collapse=" ")
-}
-
-res <- c()
 
 ## Basic Data Filtering to get valid Indiana data
 in.data <- full.data %>%
@@ -38,25 +29,15 @@ in.data <- full.data %>%
 ozone <- in.data %>%
   filter(Parameter.Name == "Ozone")
 
-ozone_purpose <- ozone %>%
-  group_by(Monitoring.Objective) %>%
-  summarize(Count = n())
-colnames(ozone_purpose) <- c('Monitoring Objective', 'Count')
-ozone <- list(name = "ozone", code = c(44201), data = ozone, purpose = ozone_purpose)
-
 ## SO2 Data
 so2 <- in.data %>%
   filter(Parameter.Name == "Sulfur dioxide")
-
 
 so2_purpose <- so2 %>%
   group_by(Monitoring.Objective) %>%
   summarize(Count = n())
 colnames(so2_purpose) <- c('Monitoring Objective', 'Count')
 
-so2 <- list(name = "sulfur dioxide", code = c(42401), data = so2, purpose = so2_purpose)
-
-pollutants = list(ozone, so2)
 ```
 
 ## Data Requirements
@@ -75,13 +56,30 @@ The raw dataset downloaded from U.S. EPA contained `r nrow(full.data)` records. 
 
 Next, any rows with missing date ranges were removed, as well as any rows where the `Last.Sample.Date` was before January 1, 1999. Lastly, the dataset was reduced to only records from Indiana (`State.Code == 18`). This filtering left `r nrow(in.data) ` rows of data.
 
-```{r loopResults, include=FALSE}
-out=NULL
-opts_knit$set(output.dir = getwd())
-for(i in seq_along(pollutants)) {
-  res = pollutants[[i]]
-  out = c(out, knit_child('pollutant_section.Rmd'))
-}
+### Ozone
+
+There are `r nrow(ozone) ` ozone monitors in Indiana that have been active at some point between 1999 and 2015. Of these, `r nrow(ozone[ozone$Last.Year.of.Data == 2015,]) ` were active as of the end of 2015 and `r nrow(ozone[ozone$Last.Year.of.Data == 2015 & ozone$First.Year.of.Data <= 1999, ]) ` have been active during the entire period covered by this project (1999-2015).
+
+Below is a plot illustrating ozone data coverage, by monitor, for all monitors that collected ozone data during the period of interest.
+
+```{r ozone_coverage, fig.width=9, fig.height=6, echo=FALSE}
+coveragePlot(ozone, "Ozone Monitoring Coverage by Monitoring Location")
 ```
 
-`r paste(out, collapse = '\n')`
+### `Sulfur Dioxide`
+
+There are `r nrow(so2) ` ozone monitors in Indiana that have been active at some point between 1999 and 2015. Of these, `r nrow(so2[so2$Last.Year.of.Data == 2015,]) ` were active as of the end of 2015 and `r nrow(so2[so2$Last.Year.of.Data == 2015 & so2$First.Year.of.Data <= 1999, ]) ` have been active during the entire period covered by this project (1999-2015).
+
+Below is a plot illustrating ozone data coverage, by monitor, for all monitors that collected ozone data during the period of interest.
+
+```{r so2_coverage, fig.width=9, fig.height=6, echo=FALSE}
+coveragePlot(so2, "Sulfur Dioxide Monitoring Coverage by Monitoring Location")
+```
+
+Sulfur Dioxide monitors are usually oriented related to specific sources and so are not representative of general concentrations or population exposures. Below is a table showing the reported purpose of Sulfur Dioxide monitors in Indiana.
+
+```{r kable, echo=FALSE}
+
+library(knitr)
+kable(so2_purpose)
+```

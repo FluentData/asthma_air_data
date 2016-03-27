@@ -1,0 +1,28 @@
+---
+title: "Untitled"
+author: "Eric Bailey"
+date: "March 27, 2016"
+output: html_document
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+### `r paste0(simpleCap(res$name), "(", res$code, ")") `
+
+There are `r nrow(res$data) ` `r res$name` monitors in Indiana that have been active at some point between 1999 and 2015. Of these, `r nrow(res$data[res$data$Last.Year.of.Data == 2015,]) ` were active as of the end of 2015 and `r nrow(res$data[res$data$Last.Year.of.Data == 2015 & res$data$First.Year.of.Data <= 1999, ]) ` have been active during the entire period covered by this project (1999-2015).
+
+Below is a plot illustrating `r res$name ` data coverage, by monitor, for all monitors that collected `r res$name ` data during the period of interest.
+
+```{r fig.width=9, fig.height=6, echo=FALSE}
+coveragePlot(res$data, paste0(simpleCap(res$name), " Coverage by Monitoring Location"))
+```
+
+Many EPA air pollutant monitors are placed relative to specific sources and so are not representative of general concentrations or population exposures. Below is a table showing the reported purpose of `r res$name ` monitors in Indiana.
+
+```{r echo=FALSE}
+library(knitr)
+kable(res$purpose)
+```
