@@ -11,9 +11,12 @@ library(dplyr)
 library(reshape2)
 library(ggplot2)
 library(knitr)
+library(maps)
+library(mapdata)
 last_data_pull <- "March 24, 2016"
 load("data/full.data.rda")
 source("scripts/coveragePlot.R")
+source("scripts/monitorMap.R")
 
 simpleCap <- function(x) {
   s <- strsplit(x, " ")[[1]]

@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```
 
-### `r paste0(simpleCap(res$name), "(", res$code, ")") `
+### `r paste0(simpleCap(res$name), " (", res$code, ")") `
 
 There are `r nrow(res$data) ` `r res$name` monitors in Indiana that have been active at some point between 1999 and 2015. Of these, `r nrow(res$data[res$data$Last.Year.of.Data == 2015,]) ` were active as of the end of 2015 and `r nrow(res$data[res$data$Last.Year.of.Data == 2015 & res$data$First.Year.of.Data <= 1999, ]) ` have been active during the entire period covered by this project (1999-2015).
 
@@ -25,4 +25,10 @@ Many EPA air pollutant monitors are placed relative to specific sources and so a
 ```{r echo=FALSE}
 library(knitr)
 kable(res$purpose)
+```
+
+```{r echo=FALSE}
+
+  monitorMap(res)
+
 ```
