@@ -59,7 +59,40 @@ colnames(so2_purpose) <- c('Monitoring Objective', 'Count')
 
 so2 <- list(name = "sulfur dioxide", code = c(42401), data = so2, purpose = so2_purpose)
 
-pollutants = list(ozone, so2)
+## Nitrogen Dioxide (NO2)
+no2 <- in.data %>%
+    filter(Parameter.Code == 42602)
+
+no2_purpose <- no2 %>%
+  group_by(Monitoring.Objective) %>%
+  summarize(Count = n())
+colnames(no2_purpose) <- c("Monitoring Objective", "Count")
+
+no2 <- list(name = "nitrogen dioxide", code = c(42602), data = no2, purpose = no2_purpose)
+
+pm25 <- in.data %>%
+  filter(Parameter.Code == 88101)
+
+pm25_purpose <- pm25 %>%
+  group_by(Monitoring.Objective) %>%
+  summarize(Count = n())
+colnames(pm25_purpose) <- c("Monitoring_Objective", "Count")
+
+pm25 <- list(name = "particulate matter (<2.5um)", code = c(88101), data = pm25, purpose = pm25_purpose)
+
+met.codes <- c(61101, 61102, 61103, 61104, 62101, 62201, 63101, 64101, 68105)
+met <- in.data %>%
+  filter(Parameter.Code %in% met.codes) %>%
+  group_by(Site.Code) %>%
+  summarize(First.Year.of.Data = min(First.Year.of.Data),
+            Last.Year.of.Data = max(Last.Year.of.Data),
+            Longitude = first(Longitude),
+            Latitude = first(Latitude))
+
+met <- list(name = "meteorology", code = "various", data = met)
+
+pollutants = list(ozone, so2, no2, pm25, met)
+
 ```
 
 ## Data Requirements
